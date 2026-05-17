@@ -7,8 +7,6 @@ usage() {
  Usage: $(basename $0) -m minutes [-s seconds] [-t type]
   -s seconds 	number
   -m minutes 	number
-  -t type 	standard (10 first second of each minutes) or 
-		stand (10 seconds 1st minute and then 10 seconds in half time)
  Example: $(basename $0) -m 5 -s 40 -t standard
 EOF
 	return
@@ -32,8 +30,6 @@ ENDMESSAGE="[\033[41m Near end \033[0m]"
 while getopts ":t:s:m:h" OPTION; do
   case $OPTION in
     h) usage && exit   ;;
-		t) TYPE=$OPTARG;
-			;;
 		s) SECONDS=OPTARG
 			is_int $SECONDS
 			if (( $? != 0 )); then
