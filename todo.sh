@@ -80,7 +80,13 @@ while getopts ":j:w:t:hs" OPTION; do
   case $OPTION in
     s)
         create
-        sqlite3 $DATABASE ".headers on" ".mode column" "select job as 'To do', strftime('%d-%m-%Y', job_time) as 'Date', tag.name as 'Category' from todo join tag on todo.tag_id= tag.id where todo.job_time >= date('now') ORDER BY job_time"
+        sqlite3 $DATABASE ".headers on" ".mode column" "SELECT 
+            job AS 'To do', 
+            strftime('%d-%m-%Y', job_time) AS 'Date', 
+            tag.name AS 'Category' 
+        FROM todo JOIN tag ON todo.tag_id= tag.id 
+        WHERE todo.job_time >= DATE('now') 
+        ORDER BY job_time"
         exit;
         ;;
     h)
