@@ -1,0 +1,66 @@
+#!/bin/awk -f
+
+function getMonth(  dateString) {
+    nextDateString = dateString
+    split(nextDateString, dateArray);
+    maxDay = strftime("%e", mktime(dateArray[1] " " (dateArray[2]+1) " 1 -1 00 00"))
+    numberOfDays = strftime("%d", nextDateString);
+
+    print strftime("\n%B %Y\n", mktime(dateString));
+    
+    for (i=1; i <= int(maxDay); i++) {
+        currentDateString = dateArray[1] " " int(dateArray[2]) " " i " 00 00 00";
+        split(currentDateString, currentDateArray);
+        file = ENVIRON["HOME"] "/.notes/" currentDateArray[1] "/" currentDateArray[2] "/" currentDateArray[3];
+        result = getline noteLine < file
+        if (result == 1) {
+            print strftime("%d %a: ", mktime(currentDateString)) ((result == -1) ? " - " : noteLine) "...";
+            if (i%7 == 3) {
+                print "";
+            } 
+        }
+    }
+}
+
+BEGIN {
+    if(ARGV[1] == "list" && !ARGV[2]) {
+        currentYear = int(strftime("%Y", systime()));
+        currentMonth = int(strftime("%m", systime()));
+        currentMonthDateString = currentYear  " " int(currentMonth)  " 1 00 00 00";
+        nextMonthDateString = ((currentMonth != 12) ? currentYear : currentYear + 1)  " " ((currentMonth == 12) ? 1 : currentMonth + 1)  " 1 00 00 00";
+        
+        getMonth(currentMonthDateString);
+        getMonth(nextMonthDateString);
+    }  
+    if(ARGV[1] == "list" && ARGV[2]) {
+        split(ARGV[2], items, "-");
+        print strftime("\n%A %d %B:\n", mktime(items[3] " " int(items[2]) " " int(items[1]) " 00 00 00"));
+        system("cat ~/.notes/" items[3] "/" int(items[2]) "/" int(items[1]) " 2>/dev/null || echo Nothing for selected day...")
+    }
+
+    if(!ARGV[1]) {
+        current = strftime("%d-%m-%Y", systime());
+        split(current, items, "-");
+        print strftime("\n%A %d %B:\n", mktime(items[3] " " int(items[2]) " " int(items[1]) " 00 00 00"));
+        system("cat ~/.notes/" items[3] "/" int(items[2]) "/" int(items[1]) " 2>/dev/null || echo Nothing for today...")
+    }
+
+    if(ARGV[1] == "help" || (ARGV[1] == "add" && !ARGV[2])){
+        print "Usage: calendar [help] [list] [(add|update|remove) dd-mm-yyyy]";
+        exit
+    }
+    if(ARGV[1] == "add" && ARGV[2]) {
+        split(ARGV[2], items, "-");
+        system("mkdir -p ~/.notes/" int(items[3]) "/" int(items[2])  " && nvi ~/.notes/" items[3] "/" int(items[2]) "/" int(items[1]))
+    }
+    if(ARGV[1] == "update" && ARGV[2]) {
+        split(ARGV[2], items, "-");
+        system("nvi ~/.notes/" items[3] "/" int(items[2]) "/" int(items[1]))
+    }
+    if(ARGV[1] == "remove" && ARGV[2]) {
+        split(ARGV[2], items, "-");
+        system("rm ~/.notes/" items[3] "/" int(items[2]) "/" int(items[1]))
+    }
+
+    exit
+} 
