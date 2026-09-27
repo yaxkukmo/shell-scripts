@@ -1,82 +1,107 @@
-#!/bin/ksh
+#!/usr/local/bin/ksh93
 # Timer for film development
 #
+#set -x
 usage() {
 	cat <<EOF
  Description: Timer for film develpment.
  Usage: $(basename $0) -m minutes [-s seconds] [-t type]
   -s seconds 	number
   -m minutes 	number
+  -t type 	standard (10 first second of each minutes) or 
+		stand (10 seconds 1st minute and then 10 seconds in half time)
  Example: $(basename $0) -m 5 -s 40 -t standard
 EOF
 	return
 }
 
+trap 'tput cnorm; exit' INT TERM EXIT
+
 is_int() {
-	if (( $(( $1 + 0 )) == 0 )) 2> /dev/null; then
-		return 1
-	fi
-	return 0
+    if (( $(( $1 + 0 )) == 0 )) 2> /dev/null; then
+        return 1
+    fi
+    return 0
 }
 
 if (( $# == 0 )); then
-	usage
-	exit 1
+    usage
+    exit 1
 fi
 
-MIXMESSAGE="[\033[41m Mixing time \033[0m]"
-ENDMESSAGE="[\033[41m Near end \033[0m]"
+mixmessage=$(printf "[Mixing time]")
+endmessage=$(printf "[Near end]")
 
 while getopts ":t:s:m:h" OPTION; do
   case $OPTION in
-    h) usage && exit   ;;
-		s) SECONDS=OPTARG
-			is_int $SECONDS
-			if (( $? != 0 )); then
-				usage
-				print " Error: Value for -s is not a number > 0."
-				exit 1
-			fi
-			;;
-		m) MINUTES=OPTARG
-			is_int $MINUTES
-			if (( $? != 0 )); then
-				usage
-				print " Error: Value for -m is not a number > 0."
-				exit 1
-			fi
-			;;
-		:) usage && print " Error: Option -${OPTARG} requires an argument" && exit ;;
+    h)
+        usage && exit
+        ;;
+    t)
+        type=$OPTARG;
+        ;;
+    s) 
+        seconds=$OPTARG
+        is_int $seconds
+        if (( $? != 0 )); then
+            usage
+            print " Error: Value for -s is not a number > 0."
+            exit 1
+        fi
+        ;;
+    m) 
+        minutes=$OPTARG
+        is_int $minutes
+        if (( $? != 0 )); then
+            usage
+            print " Error: Value for -m is not a number > 0."
+            exit 1
+        fi
+        ;;
+    :) usage && print " Error: Option -${OPTARG} requires an argument" && exit ;;
     ?) usage && print " Error: Invalid option -${OPTARG}" && exit ;;
 
-	esac
+    esac
 done
 
-TOTAL_DEVELOPMENT_TIME=$(( int(${MINUTES:=0} * 60 + ${SECONDS:=0}) ))
-START_TIME=$(date +%s)
+total_development_time=$((int(${minutes:=0} * 60 + ${seconds:=0})))
+start_time=$(date +%s)
 
+tput civis #hide cursor
+tput sc
 while true; do
-	TIME=$(date +%s)
-	DEVTIME=$(( $TIME - $START_TIME ))
+    width=$(tput cols)
+    current_time=$(date +%s)
+	devtime=$(( $current_time - $start_time ))
 
-	if (( $DEVTIME < $TOTAL_DEVELOPMENT_TIME )); then
-		MESSAGE=""
+        tput rc
+    if (( $devtime < $total_development_time )); then
+        message="Awaiting"
 
-		if (( $DEVTIME % 60 < 10 )); then
-			MESSAGE="${MIXMESSAGE}"
-		fi
+        if (( $devtime % 60 < 10 )); then
+            message="${mixmessage}"
+        fi
 
-		if (( $TOTAL_DEVELOPMENT_TIME - $DEVTIME < 60 )); then
-			MESSAGE="${MESSAGE} ${ENDMESSAGE}"
-		fi
+        if (( $total_development_time - $devtime < 60 )); then
+            message="${message} ${endmessage}"
+        fi
+        remaining_minutes=$(( ($total_development_time - $devtime) / 60 ))
+        remaining_seconds=$(( ($total_development_time - $devtime) % 60 ))
 
-		print "${MESSAGE} (${DEVTIME} of ${TOTAL_DEVELOPMENT_TIME})"
-		tput cuu1
-	fi
-	if (( $TOTAL_DEVELOPMENT_TIME - $DEVTIME <= 0 )); then
-		exit
-	fi
+        line=$(printf '─%.0s' $(seq 1 $((width-2))))
+        frame=""
+        frame="${frame}┌${line}┐\n"
+        frame="${frame}│$(printf '%-*s' $(( width-2 )) "Status: ${message}")│\n" 
+        frame="${frame}│$(printf '%-*s' $(( width-2 )) "Remaining time ${remaining_minutes}:${remaining_seconds}")│\n" 
+        frame="${frame}└${line}┘\n"
+        printf "${frame}"
+    fi
+    if (( $total_development_time - $devtime <= 0 )); then
+        tput cnorm
+        exit
+    fi
 
-	sleep 0.5
-	tput el
+    sleep 0.5
+    tput el
 done
+tput cnorm

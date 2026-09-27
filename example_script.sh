@@ -14,30 +14,31 @@ EOF
 }
 
 case $# in
-  0) usage
-		exit
-		;;
+    0)
+        usage
+        exit
+        ;;
 esac
 
 while getopts ":o:h" OPTION; do
   case $OPTION in
     h)
-      usage
-      exit
-      ;;
+        usage
+        exit
+        ;;
     o)
-      OPTION_ARGUMENT=$OPTARG
-      ;;
-		:)
-			echo "Error: Option -${OPTARG} requires an argument."
-			usage
-			exit 1
-			;;
+        OPTION_ARGUMENT=$OPTARG
+        ;;
+    :)
+        echo "Error: Option -${OPTARG} requires an argument."
+        usage
+        exit 1
+        ;;
     ?)
-      echo "Error: Invalid option -${OPTARG}"
-      usage
-			exit 1
-      ;;
+        echo "Error: Invalid option -${OPTARG}"
+        usage
+        exit 1
+        ;;
   esac
 done
 
