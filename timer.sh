@@ -5,12 +5,10 @@
 usage() {
 	cat <<EOF
  Description: Timer for film develpment.
- Usage: $(basename $0) -m minutes [-s seconds] [-t type]
+ Usage: $(basename $0) -m minutes [-s seconds] 
   -s seconds 	number
   -m minutes 	number
-  -t type 	standard (10 first second of each minutes) or 
-		stand (10 seconds 1st minute and then 10 seconds in half time)
- Example: $(basename $0) -m 5 -s 40 -t standard
+ Example: $(basename $0) -m 5 -s 40
 EOF
 	return
 }
@@ -36,9 +34,6 @@ while getopts ":t:s:m:h" OPTION; do
   case $OPTION in
     h)
         usage && exit
-        ;;
-    t)
-        type=$OPTARG;
         ;;
     s) 
         seconds=$OPTARG
