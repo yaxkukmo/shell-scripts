@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/local/bin/ksh93
 
 SCRIPT_NAME=$(basename $0)
 

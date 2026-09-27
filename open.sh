@@ -1,5 +1,5 @@
 #!/usr/local/bin/ksh93
-set -x
+#set -x
 SCRIPT_NAME=$(basename $0)
 
 usage() {

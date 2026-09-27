@@ -12,7 +12,7 @@ usage() {
 
     Usage: ${SCRIPT} [-h] [-a] [-u] [-r] [-l]
         -h help
-				-l list notes
+        -l list notes
         -a add new note
         -u update note
         -r remove note
